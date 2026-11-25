@@ -1,0 +1,417 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kampala SmartRoute</title>
+
+  <link rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    body {
+      background: #0b1120;
+      color: #f1f5f9;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 22px 7%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      color: #38bdf8;
+    }
+
+    .logo span {
+      color: white;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 7px 12px;
+      background: #172337;
+      border-radius: 20px;
+      color: #94a3b8;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    .intro {
+      margin-bottom: 30px;
+    }
+
+    .intro h1 {
+      font-size: clamp(28px, 5vw, 42px);
+      margin-bottom: 12px;
+    }
+
+    .intro h1 span {
+      color: #38bdf8;
+    }
+
+    .intro p {
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+
+    .planner {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 20px;
+    }
+
+    .panel {
+      background: #111b2d;
+      border: 1px solid #243248;
+      border-radius: 18px;
+      padding: 24px;
+    }
+
+    .panel h2 {
+      font-size: 19px;
+      margin-bottom: 22px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #94a3b8;
+      margin: 16px 0 8px;
+    }
+
+    select {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      background: #0b1120;
+      color: white;
+      border: 1px solid #2c3b52;
+      outline: none;
+    }
+
+    select:focus {
+      border-color: #38bdf8;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      margin-top: 18px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .primary {
+      background: #0ea5e9;
+      color: #03111c;
+    }
+
+    .secondary {
+      background: #1d2a3d;
+      color: #e2e8f0;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      opacity: .88;
+    }
+
+    #map {
+      min-height: 450px;
+      height: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid #243248;
+    }
+
+    .results {
+      display: none;
+      margin-top: 20px;
+      padding: 18px;
+      background: #0b1120;
+      border-radius: 12px;
+      border: 1px solid #243248;
+    }
+
+    .results h3 {
+      margin-bottom: 12px;
+      color: #38bdf8;
+    }
+
+    .results p {
+      margin: 10px 0;
+      color: #cbd5e1;
+      font-size: 14px;
+    }
+
+    .disclaimer {
+      font-size: 11px;
+      line-height: 1.6;
+      color: #64748b;
+      margin-top: 14px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 15px;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    @media (max-width: 800px) {
+      header {
+        padding: 18px 5%;
+      }
+
+      main {
+        padding: 28px 16px;
+      }
+
+      .planner {
+        grid-template-columns: 1fr;
+      }
+
+      #map {
+        min-height: 380px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">Kampala<span>SmartRoute</span></div>
+    <div class="badge">BETA · KAMPALA</div>
+  </header>
+
+  <main>
+    <section class="intro">
+      <h1>Move around Kampala <span>smarter.</span></h1>
+      <p>Explore locations and plan your journey around the city.</p>
+    </section>
+
+    <section class="planner">
+
+      <div class="panel">
+        <h2>Plan your journey</h2>
+
+        <label for="origin">Starting point</label>
+        <select id="origin">
+          <option value="central">Kampala City Centre</option>
+          <option value="ntinda">Ntinda</option>
+          <option value="nakawa">Nakawa</option>
+          <option value="makerere">Makerere University</option>
+          <option value="najjera">Najjera</option>
+          <option value="kawempe">Kawempe</option>
+          <option value="munyonyo">Munyonyo</option>
+          <option value="kabalagala">Kabalagala</option>
+          <option value="rubaga">Rubaga</option>
+          <option value="kololo">Kololo</option>
+        </select>
+
+        <button class="secondary" id="swap">⇅ Swap locations</button>
+
+        <label for="destination">Destination</label>
+        <select id="destination">
+          <option value="makerere">Makerere University</option>
+          <option value="central">Kampala City Centre</option>
+          <option value="ntinda">Ntinda</option>
+          <option value="nakawa">Nakawa</option>
+          <option value="najjera">Najjera</option>
+          <option value="kawempe">Kawempe</option>
+          <option value="munyonyo">Munyonyo</option>
+          <option value="kabalagala">Kabalagala</option>
+          <option value="rubaga">Rubaga</option>
+          <option value="kololo">Kololo</option>
+        </select>
+
+        <button class="primary" id="findRoute">Explore journey</button>
+
+        <div class="results" id="results">
+          <h3>Journey overview</h3>
+          <p id="routeText"></p>
+          <p id="distanceText"></p>
+          <p id="timeText"></p>
+          <p class="disclaimer">
+            This is an early prototype. The line shows a direct geographic
+            connection, not actual roads, taxi routes, or live traffic.
+            Travel time is an illustrative estimate.
+          </p>
+        </div>
+      </div>
+
+      <div id="map"></div>
+
+    </section>
+  </main>
+
+  <footer>
+    Kampala SmartRoute · Built for Kampala, Uganda 🇺🇬
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // Kampala locations and approximate coordinates
+    const locations = {
+      central: {
+        name: "Kampala City Centre",
+        coords: [0.3136, 32.5811]
+      },
+      ntinda: {
+        name: "Ntinda",
+        coords: [0.3676, 32.6107]
+      },
+      nakawa: {
+        name: "Nakawa",
+        coords: [0.3470, 32.6260]
+      },
+      makerere: {
+        name: "Makerere University",
+        coords: [0.3350, 32.5680]
+      },
+      najjera: {
+        name: "Najjera",
+        coords: [0.3830, 32.6410]
+      },
+      kawempe: {
+        name: "Kawempe",
+        coords: [0.4040, 32.5660]
+      },
+      munyonyo: {
+        name: "Munyonyo",
+        coords: [0.2560, 32.6220]
+      },
+      kabalagala: {
+        name: "Kabalagala",
+        coords: [0.2950, 32.6160]
+      },
+      rubaga: {
+        name: "Rubaga",
+        coords: [0.3030, 32.5520]
+      },
+      kololo: {
+        name: "Kololo",
+        coords: [0.3320, 32.5940]
+      }
+    };
+
+    // Create map
+    const map = L.map("map").setView([0.325, 32.585], 12);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+
+    let routeLine;
+    let markers = [];
+
+    // Calculate straight-line distance between coordinates
+    function calculateDistance(a, b) {
+      const R = 6371;
+      const toRad = value => value * Math.PI / 180;
+
+      const lat1 = toRad(a[0]);
+      const lat2 = toRad(b[0]);
+      const dLat = toRad(b[0] - a[0]);
+      const dLon = toRad(b[1] - a[1]);
+
+      const h =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(lat1) *
+        Math.cos(lat2) *
+        Math.sin(dLon / 2) ** 2;
+
+      return 2 * R * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
+    }
+
+    function clearMap() {
+      if (routeLine) map.removeLayer(routeLine);
+      markers.forEach(marker => map.removeLayer(marker));
+      markers = [];
+    }
+
+    document.getElementById("findRoute").addEventListener("click", () => {
+      const fromId = document.getElementById("origin").value;
+      const toId = document.getElementById("destination").value;
+
+      if (fromId === toId) {
+        alert("Choose two different locations.");
+        return;
+      }
+
+      const from = locations[fromId];
+      const to = locations[toId];
+
+      clearMap();
+
+      const startMarker = L.marker(from.coords)
+        .addTo(map)
+        .bindPopup("Start: " + from.name);
+
+      const endMarker = L.marker(to.coords)
+        .addTo(map)
+        .bindPopup("Destination: " + to.name);
+
+      markers.push(startMarker, endMarker);
+
+      // Direct line only — not a road route
+      routeLine = L.polyline(
+        [from.coords, to.coords],
+        { color: "#0ea5e9", weight: 5, dashArray: "8 8" }
+      ).addTo(map);
+
+      map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+
+      const distance = calculateDistance(from.coords, to.coords);
+
+      // Illustrative urban journey estimate, not real traffic data
+      const estimatedMinutes = Math.round((distance * 1.6 / 20) * 60);
+
+      document.getElementById("routeText").textContent =
+        from.name + " → " + to.name;
+
+      document.getElementById("distanceText").textContent =
+        "Direct distance: " + distance.toFixed(2) + " km";
+
+      document.getElementById("timeText").textContent =
+        "Illustrative travel time: " + estimatedMinutes + " minutes";
+
+      document.getElementById("results").style.display = "block";
+    });
+
+    // Swap starting point and destination
+    document.getElementById("swap").addEventListener("click", () => {
+      const origin = document.getElementById("origin");
+      const destination = document.getElementById("destination");
+
+      const oldOrigin = origin.value;
+      origin.value = destination.value;
+      destination.value = oldOrigin;
+    });
+  </script>
+
+</body>
+</html>
